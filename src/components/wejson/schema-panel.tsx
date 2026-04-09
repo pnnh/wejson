@@ -1,18 +1,36 @@
 "use client";
 
-import React from "react";
-import { ChevronDown, ChevronRight, ShieldCheck, Wand2 } from "lucide-react";
+import { transKey } from "@/components/common/locales/normal";
+import {
+  transWeJsonClearResult,
+  transWeJsonDataParseError,
+  transWeJsonGenerateFromJson,
+  transWeJsonPleaseFormat,
+  transWeJsonPleaseInputSchema,
+  transWeJsonSchemaFailPrefix,
+  transWeJsonSchemaFailSuffix,
+  transWeJsonSchemaFormatError,
+  transWeJsonSchemaGenerateTitle,
+  transWeJsonSchemaHint,
+  transWeJsonSchemaPass,
+  transWeJsonSchemaTitle,
+  transWeJsonUnknownError,
+  transWeJsonValidate,
+} from "@/components/common/locales/texts";
+import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Button } from "@/components/ui/button";
 import { css } from "@/gen/styled/css";
+import { ChevronDown, ChevronRight, ShieldCheck, Wand2 } from "lucide-react";
+import React from "react";
 
 interface Props {
   /** 格式化后的 JSON 字符串（被校验数据） */
   json: string;
+  lang: string;
 }
 
 const PLACEHOLDER = `{
@@ -102,7 +120,7 @@ interface ValidationResult {
 
 // ── 组件 ───────────────────────────────────────────────────────────────────────
 
-export function SchemaPanel({ json }: Props) {
+export function SchemaPanel({ json, lang }: Props) {
   const [open, setOpen] = React.useState(false);
   const [schemaText, setSchemaText] = React.useState("");
   const [result, setResult] = React.useState<ValidationResult | null>(null);
@@ -110,7 +128,7 @@ export function SchemaPanel({ json }: Props) {
 
   function handleGenerate() {
     if (!json) {
-      setError("请先格式化 JSON");
+      setError(transKey(lang, transWeJsonPleaseFormat));
       return;
     }
     try {
@@ -126,12 +144,12 @@ export function SchemaPanel({ json }: Props) {
 
   async function validate() {
     if (!json) {
-      setError("请先格式化 JSON");
+      setError(transKey(lang, transWeJsonPleaseFormat));
       setResult(null);
       return;
     }
     if (!schemaText.trim()) {
-      setError("请输入 JSON Schema");
+      setError(transKey(lang, transWeJsonPleaseInputSchema));
       setResult(null);
       return;
     }
@@ -143,7 +161,7 @@ export function SchemaPanel({ json }: Props) {
       try {
         schema = JSON.parse(schemaText);
       } catch {
-        setError("JSON Schema 格式错误，请检查语法");
+        setError(transKey(lang, transWeJsonSchemaFormatError));
         setResult(null);
         return;
       }
@@ -152,7 +170,7 @@ export function SchemaPanel({ json }: Props) {
       try {
         data = JSON.parse(json);
       } catch {
-        setError("数据 JSON 解析失败，请先格式化");
+        setError(transKey(lang, transWeJsonDataParseError));
         setResult(null);
         return;
       }
@@ -165,7 +183,7 @@ export function SchemaPanel({ json }: Props) {
       } else {
         const errors = (validate.errors ?? []).map((e) => ({
           path: e.instancePath || "(root)",
-          message: e.message ?? "未知错误",
+          message: e.message ?? transKey(lang, transWeJsonUnknownError),
         }));
         setResult({ valid: false, errors });
       }
@@ -183,24 +201,23 @@ export function SchemaPanel({ json }: Props) {
           <button className={s.trigger}>
             {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             <ShieldCheck size={14} />
-            <span>JSON Schema 校验</span>
+            <span>{transKey(lang, transWeJsonSchemaTitle)}</span>
           </button>
         </CollapsibleTrigger>
       </div>
 
       <CollapsibleContent className={s.content}>
         <div className={s.hintRow}>
-          <p className={s.hint}>
-            输入 JSON Schema（支持 Draft-07），点击校验查看数据是否符合规范。
-          </p>
+          <p className={s.hint}>{transKey(lang, transWeJsonSchemaHint)}</p>
           <Button
             size="sm"
             variant="outline"
             onClick={handleGenerate}
             disabled={!json}
-            title="根据当前格式化的 JSON 自动推断并生成 Schema"
+            title={transKey(lang, transWeJsonSchemaGenerateTitle)}
           >
-            <Wand2 size={13} />从 JSON 生成
+            <Wand2 size={13} />
+            {transKey(lang, transWeJsonGenerateFromJson)}
           </Button>
         </div>
         <textarea
@@ -213,7 +230,7 @@ export function SchemaPanel({ json }: Props) {
         />
         <div className={s.actionRow}>
           <Button size="sm" onClick={validate} disabled={!json}>
-            校验
+            {transKey(lang, transWeJsonValidate)}
           </Button>
           <Button
             size="sm"
@@ -223,7 +240,7 @@ export function SchemaPanel({ json }: Props) {
               setError("");
             }}
           >
-            清除结果
+            {transKey(lang, transWeJsonClearResult)}
           </Button>
         </div>
         {error && <p className={s.error}>{error}</p>}
@@ -231,12 +248,12 @@ export function SchemaPanel({ json }: Props) {
           <div className={result.valid ? s.passBox : s.failBox}>
             {result.valid ? (
               <span className={s.passText}>
-                ✓ 校验通过，数据符合 Schema 规范
+                {transKey(lang, transWeJsonSchemaPass)}
               </span>
             ) : (
               <>
                 <span className={s.failText}>
-                  ✗ 校验失败，共 {result.errors.length} 个错误
+                  {`${transKey(lang, transWeJsonSchemaFailPrefix)} ${result.errors.length} ${transKey(lang, transWeJsonSchemaFailSuffix)}`}
                 </span>
                 <ul className={s.errorList}>
                   {result.errors.map((e, i) => (

@@ -1,153 +1,159 @@
-import {css} from "@/gen/styled/css";
-import {SiteNavMenu} from "@/components/server/content/partials/profile";
-import {PSLanguageSelector} from "./language";
-import {getServerTheme} from "@/components/server/theme";
-import {getSearchString} from "@/components/server/pathname";
+import { SiteNavMenu } from "@/components/server/content/partials/profile";
+import { getSearchString } from "@/components/server/pathname";
+import { css } from "@/gen/styled/css";
+import { PSLanguageSelector } from "./language";
 
-export async function ContentPublicNavbar({pathname, searchParams, lang,}: {
-    pathname: string,
-    searchParams: Record<string, string>,
-    lang: string,
+export async function ContentPublicNavbar({
+  pathname,
+  searchParams,
+  lang,
+}: {
+  pathname: string;
+  searchParams: Record<string, string>;
+  lang: string;
 }) {
-    const searchString = await getSearchString()
-    const currentUrl = `${pathname}${searchString}`
-    const themeName = await getServerTheme()
+  const searchString = await getSearchString();
+  const currentUrl = `${pathname}${searchString}`;
 
-    return <div className={styles.navHeader}>
-        <div className={styles.leftNav}>
-            <SiteNavMenu lang={lang} searchParams={searchParams}/>
-        </div>
-        <div className={styles.rightNav}> 
-            <PSLanguageSelector lang={lang} currentUrl={currentUrl}/>
-        </div>
+  return (
+    <div className={styles.navHeader}>
+      <div className={styles.leftNav}>
+        <SiteNavMenu lang={lang} searchParams={searchParams} />
+      </div>
+      <div className={styles.rightNav}>
+        <PSLanguageSelector lang={lang} currentUrl={currentUrl} />
+      </div>
     </div>
+  );
 }
 
 const styles = {
-    navHeader: css`
-        display: flex;
-        flex-direction: row;
-        height: 3.25rem;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 1rem;
-        font-weight: 400;
+  navHeader: css`
+    display: flex;
+    flex-direction: row;
+    height: 3.25rem;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--text-primary-color);
+    padding: 0 0.5rem;
+    @media screen and (min-width: 120rem) {
+      width: 120rem;
+      margin: 0 auto;
+    }
+  `,
+  leftNav: css`
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-left: 0.75rem;
+    gap: 1rem;
+  `,
+  brandLink: css`
+    color: var(--text-primary-color);
+    text-decoration: none;
+    font-size: 1rem;
+    display: inline-block;
+    position: relative;
+    height: 2rem;
+    width: 2rem;
+    border-radius: 6px;
+    overflow: hidden;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  `,
+  rightNav: css`
+    margin-right: 1.5rem;
+    display: none;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    @media screen and (min-width: 48rem) {
+      display: flex;
+      margin-right: 1rem;
+    }
+  `,
+  toolsLink: css`
+    text-decoration: none;
+    color: var(--text-primary-color);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 1.5rem;
+    width: 1.5rem;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: var(--action-hover-color);
+    }
+
+    & svg {
+      width: 100%;
+      height: 100%;
+    }
+  `,
+  languages: css`
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    align-items: center;
+    margin-right: 0.25rem;
+
+    & a {
+      text-decoration: none;
+      color: var(--text-secondary-color);
+      font-size: 0.85rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition:
+        color 0.2s ease,
+        background-color 0.2s ease;
+
+      &:hover {
         color: var(--text-primary-color);
-        padding: 0 0.5rem;
-        @media screen and (min-width: 120rem) {
-            width: 120rem;
-            margin: 0 auto;
-        }
-    `,
-    leftNav: css`
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        margin-left: 0.75rem;
-        gap: 1rem;
-    `,
-    brandLink: css`
-        color: var(--text-primary-color);
-        text-decoration: none;
-        font-size: 1rem;
-        display: inline-block;
-        position: relative;
-        height: 2rem;
-        width: 2rem;
-        border-radius: 6px;
-        overflow: hidden;
-        transition: opacity 0.2s ease;
+        background-color: var(--action-hover-color);
+      }
 
-        &:hover {
-            opacity: 0.8;
-        }
-    `,
-    rightNav: css`
-        margin-right: 1.5rem;
-        display: none;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-        gap: 0.75rem;
-        @media screen and (min-width: 48rem) {
-            display: flex;
-            margin-right: 1rem;
-        }
-    `,
-    toolsLink: css`
-        text-decoration: none;
-        color: var(--text-primary-color);
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        height: 1.5rem;
-        width: 1.5rem;
-        border-radius: 6px;
-        transition: background-color 0.2s ease;
+      &.active {
+        color: var(--primary-color);
+        font-weight: 500;
+      }
+    }
+  `,
+  rightNavMobile: css`
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    align-items: center;
+    margin-right: 1rem;
+    @media screen and (min-width: 48rem) {
+      display: none;
+    }
+  `,
+  mobileMenu: css`
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 2rem;
+    width: 2rem;
+    border-radius: 6px;
+    color: var(--text-primary-color);
+    transition: background-color 0.2s ease;
 
-        &:hover {
-            background-color: var(--action-hover-color);
-        }
+    &:hover {
+      background-color: var(--action-hover-color);
+    }
 
-        & svg {
-            width: 100%;
-            height: 100%;
-        }
-    `,
-    languages: css`
-        display: flex;
-        flex-direction: row;
-        gap: 0.5rem;
-        align-items: center;
-        margin-right: 0.25rem;
-
-        & a {
-            text-decoration: none;
-            color: var(--text-secondary-color);
-            font-size: 0.85rem;
-            padding: 2px 6px;
-            border-radius: 4px;
-            transition: color 0.2s ease, background-color 0.2s ease;
-
-            &:hover {
-                color: var(--text-primary-color);
-                background-color: var(--action-hover-color);
-            }
-
-            &.active {
-                color: var(--primary-color);
-                font-weight: 500;
-            }
-        }
-    `,
-    rightNavMobile: css`
-        display: flex;
-        flex-direction: row;
-        gap: 0.5rem;
-        align-items: center;
-        margin-right: 1rem;
-        @media screen and (min-width: 48rem) {
-            display: none;
-        }
-    `,
-    mobileMenu: css`
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        height: 2rem;
-        width: 2rem;
-        border-radius: 6px;
-        color: var(--text-primary-color);
-        transition: background-color 0.2s ease;
-
-        &:hover {
-            background-color: var(--action-hover-color);
-        }
-
-        & svg {
-            width: 1.4rem;
-            height: 1.4rem;
-        }
-    `,
+    & svg {
+      width: 1.4rem;
+      height: 1.4rem;
+    }
+  `,
 };

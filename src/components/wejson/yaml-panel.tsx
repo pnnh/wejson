@@ -1,6 +1,22 @@
 "use client";
 
-import React from "react";
+import { transKey } from "@/components/common/locales/normal";
+import {
+  transWeJsonCopied,
+  transWeJsonCopy,
+  transWeJsonDownloadYaml,
+  transWeJsonExportYaml,
+  transWeJsonPleaseFormat,
+  transWeJsonReconvert,
+  transWeJsonYamlHint,
+} from "@/components/common/locales/texts";
+import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { css } from "@/gen/styled/css";
 import {
   ChevronDown,
   ChevronRight,
@@ -8,16 +24,11 @@ import {
   Download,
   FileCode,
 } from "lucide-react";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { Button } from "@/components/ui/button";
-import { css } from "@/gen/styled/css";
+import React from "react";
 
 interface Props {
   json: string;
+  lang: string;
 }
 
 function downloadText(content: string, filename: string, mime: string) {
@@ -30,7 +41,7 @@ function downloadText(content: string, filename: string, mime: string) {
   URL.revokeObjectURL(url);
 }
 
-export function YamlPanel({ json }: Props) {
+export function YamlPanel({ json, lang }: Props) {
   const [open, setOpen] = React.useState(false);
   const [yaml, setYaml] = React.useState("");
   const [error, setError] = React.useState("");
@@ -38,7 +49,7 @@ export function YamlPanel({ json }: Props) {
 
   async function convert() {
     if (!json) {
-      setError("请先格式化 JSON");
+      setError(transKey(lang, transWeJsonPleaseFormat));
       setYaml("");
       return;
     }
@@ -73,7 +84,7 @@ export function YamlPanel({ json }: Props) {
           <button className={s.trigger}>
             {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             <FileCode size={14} />
-            <span>导出 YAML</span>
+            <span>{transKey(lang, transWeJsonExportYaml)}</span>
           </button>
         </CollapsibleTrigger>
       </div>
@@ -86,7 +97,7 @@ export function YamlPanel({ json }: Props) {
             onClick={convert}
             disabled={!json}
           >
-            重新转换
+            {transKey(lang, transWeJsonReconvert)}
           </Button>
           <Button
             size="sm"
@@ -95,7 +106,9 @@ export function YamlPanel({ json }: Props) {
             disabled={!yaml}
           >
             <Copy size={13} />
-            {copied ? "已复制!" : "复制"}
+            {copied
+              ? transKey(lang, transWeJsonCopied)
+              : transKey(lang, transWeJsonCopy)}
           </Button>
           <Button
             size="sm"
@@ -104,13 +117,13 @@ export function YamlPanel({ json }: Props) {
             disabled={!yaml}
           >
             <Download size={13} />
-            下载 .yaml
+            {transKey(lang, transWeJsonDownloadYaml)}
           </Button>
         </div>
         {error && <p className={s.error}>{error}</p>}
         {yaml && <pre className={s.result}>{yaml}</pre>}
         {!yaml && !error && (
-          <p className={s.hint}>展开后自动将格式化 JSON 转为 YAML。</p>
+          <p className={s.hint}>{transKey(lang, transWeJsonYamlHint)}</p>
         )}
       </CollapsibleContent>
     </Collapsible>

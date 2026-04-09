@@ -24,7 +24,7 @@ export default async function Page({
       pathname={pathname}
     >
       <div className={pageStyles.pageContainer}>
-        <WeJsonClient />
+        <WeJsonClient lang={lang} />
       </div>
     </ContentLayout>
   );

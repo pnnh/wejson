@@ -1,5 +1,22 @@
 "use client";
 
+import { transKey } from "@/components/common/locales/normal";
+import {
+  transWeJsonCopied,
+  transWeJsonCopyFormatted,
+  transWeJsonCopyMinified,
+  transWeJsonDownload,
+  transWeJsonFormat,
+  transWeJsonInputLabel,
+  transWeJsonLoadingEditor,
+  transWeJsonLoadingPreview,
+  transWeJsonMinify,
+  transWeJsonModeJson,
+  transWeJsonModeJson5,
+  transWeJsonPreviewLabel,
+  transWeJsonSortAsc,
+  transWeJsonSortDesc,
+} from "@/components/common/locales/texts";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { css } from "@/gen/styled/css";
@@ -15,25 +32,19 @@ import React, { useRef } from "react";
 import { useJsonHistory } from "./history";
 import { HistoryPanel } from "./history-panel";
 import { JsonPathPanel } from "./jsonpath-panel";
-import { YamlPanel } from "./yaml-panel";
-import { XmlPanel } from "./xml-panel";
-import { SchemaPanel } from "./schema-panel";
 import type { MonacoInputHandle } from "./monaco-input";
+import { SchemaPanel } from "./schema-panel";
+import { XmlPanel } from "./xml-panel";
+import { YamlPanel } from "./yaml-panel";
 
-// Monaco 组件使用 dynamic import 避免 SSR
+// Monaco 组件使用 dynamic import 避免 SSR — loading 文本在组件内部通过 lang prop 渲染
 const MonacoInput = dynamic(
   () => import("./monaco-input").then((m) => ({ default: m.MonacoInput })),
-  {
-    ssr: false,
-    loading: () => <div className={styles.editorLoading}>加载编辑器…</div>,
-  },
+  { ssr: false },
 );
 const MonacoPreview = dynamic(
   () => import("./monaco-preview").then((m) => ({ default: m.MonacoPreview })),
-  {
-    ssr: false,
-    loading: () => <div className={styles.editorLoading}>加载预览…</div>,
-  },
+  { ssr: false },
 );
 
 // 递归对对象所有层级的 key 进行排序
@@ -65,16 +76,30 @@ function downloadJson(content: string, filename = "data.json") {
   URL.revokeObjectURL(url);
 }
 
-export function WeJsonClient() {
+export function WeJsonClient({ lang }: { lang: string }) {
   const [rawContent, setRawContent] = React.useState("");
   const [errMsg, setErrMsg] = React.useState("");
   const [parsedContent, setParsedContent] = React.useState("");
+  const [inputMode, setInputMode] = React.useState<"json" | "json5">("json");
   const [copyLabel, setCopyLabel] = React.useState("");
   const editorHandleRef = useRef<MonacoInputHandle | null>(null);
   const { history, addToHistory, removeFromHistory, clearHistory } =
     useJsonHistory();
 
-  function parse(raw: string): unknown | null {
+  async function parse(raw: string): Promise<unknown | null> {
+    if (inputMode === "json5") {
+      try {
+        const { default: JSON5 } = await import("json5");
+        const parsed = JSON5.parse(raw);
+        setErrMsg("");
+        editorHandleRef.current?.clearMarkers();
+        return parsed;
+      } catch (error) {
+        const errStr = String(error);
+        setErrMsg("Invalid JSON5: " + errStr);
+        return null;
+      }
+    }
     try {
       const parsed = JSON.parse(raw);
       setErrMsg("");
@@ -101,8 +126,8 @@ export function WeJsonClient() {
     }
   }
 
-  function handleFormat() {
-    const parsed = parse(rawContent);
+  async function handleFormat() {
+    const parsed = await parse(rawContent);
     if (parsed !== null) {
       const formatted = JSON.stringify(parsed, null, 2);
       setParsedContent(formatted);
@@ -110,15 +135,15 @@ export function WeJsonClient() {
     }
   }
 
-  function handleMinify() {
-    const parsed = parse(rawContent);
+  async function handleMinify() {
+    const parsed = await parse(rawContent);
     if (parsed !== null) {
       setParsedContent(JSON.stringify(parsed));
     }
   }
 
-  function handleSort(direction: "asc" | "desc") {
-    const parsed = parse(rawContent);
+  async function handleSort(direction: "asc" | "desc") {
+    const parsed = await parse(rawContent);
     if (parsed !== null) {
       setParsedContent(JSON.stringify(sortKeys(parsed, direction), null, 2));
     }
@@ -141,19 +166,19 @@ export function WeJsonClient() {
     <div className={styles.container}>
       <div className={styles.toolbar}>
         <Button size="sm" onClick={handleFormat}>
-          格式化
+          {transKey(lang, transWeJsonFormat)}
         </Button>
         <Button size="sm" variant="outline" onClick={handleMinify}>
           <Minimize2 size={14} />
-          压缩
+          {transKey(lang, transWeJsonMinify)}
         </Button>
         <Button size="sm" variant="outline" onClick={() => handleSort("asc")}>
           <ArrowDownAZ size={14} />
-          排序 A→Z
+          {transKey(lang, transWeJsonSortAsc)}
         </Button>
         <Button size="sm" variant="outline" onClick={() => handleSort("desc")}>
           <ArrowUpAZ size={14} />
-          排序 Z→A
+          {transKey(lang, transWeJsonSortDesc)}
         </Button>
         <div className={styles.spacer} />
         <Button
@@ -163,7 +188,9 @@ export function WeJsonClient() {
           onClick={() => handleCopy(parsedContent, "formatted")}
         >
           <Copy size={14} />
-          {copyLabel === "formatted" ? "已复制!" : "复制格式化"}
+          {copyLabel === "formatted"
+            ? transKey(lang, transWeJsonCopied)
+            : transKey(lang, transWeJsonCopyFormatted)}
         </Button>
         <Button
           size="sm"
@@ -178,7 +205,9 @@ export function WeJsonClient() {
           }}
         >
           <Copy size={14} />
-          {copyLabel === "minified" ? "已复制!" : "复制压缩"}
+          {copyLabel === "minified"
+            ? transKey(lang, transWeJsonCopied)
+            : transKey(lang, transWeJsonCopyMinified)}
         </Button>
         <Button
           size="sm"
@@ -187,14 +216,41 @@ export function WeJsonClient() {
           onClick={() => downloadJson(parsedContent)}
         >
           <Download size={14} />
-          下载
+          {transKey(lang, transWeJsonDownload)}
         </Button>
       </div>
 
       <div className={styles.editArea}>
         <div className={styles.panel}>
-          <div className={styles.panelLabel}>输入 JSON</div>
+          <div className={styles.panelLabel}>
+            <span>{transKey(lang, transWeJsonInputLabel)}</span>
+            <div className={styles.modeGroup}>
+              <label className={styles.modeOption}>
+                <input
+                  type="radio"
+                  name="wejson-input-mode"
+                  value="json"
+                  checked={inputMode === "json"}
+                  onChange={() => setInputMode("json")}
+                />
+                {transKey(lang, transWeJsonModeJson)}
+              </label>
+              <label className={styles.modeOption}>
+                <input
+                  type="radio"
+                  name="wejson-input-mode"
+                  value="json5"
+                  checked={inputMode === "json5"}
+                  onChange={() => setInputMode("json5")}
+                />
+                {transKey(lang, transWeJsonModeJson5)}
+              </label>
+            </div>
+          </div>
           <div className={styles.editorWrap}>
+            <div className={styles.editorLoading} id="editor-loading-input">
+              {transKey(lang, transWeJsonLoadingEditor)}
+            </div>
             <MonacoInput
               value={rawContent}
               onChange={setRawContent}
@@ -205,24 +261,30 @@ export function WeJsonClient() {
           </div>
         </div>
         <div className={styles.panel}>
-          <div className={styles.panelLabel}>预览</div>
+          <div className={styles.panelLabel}>
+            {transKey(lang, transWeJsonPreviewLabel)}
+          </div>
           <div className={styles.editorWrap}>
-            <MonacoPreview value={parsedContent} />
+            <div className={styles.editorLoading} id="editor-loading-preview">
+              {transKey(lang, transWeJsonLoadingPreview)}
+            </div>
+            <MonacoPreview value={parsedContent} lang={lang} />
           </div>
         </div>
       </div>
 
       <HistoryPanel
+        lang={lang}
         history={history}
         onLoad={handleLoadHistory}
         onRemove={removeFromHistory}
         onClear={clearHistory}
       />
 
-      <JsonPathPanel json={parsedContent} />
-      <YamlPanel json={parsedContent} />
-      <XmlPanel json={parsedContent} />
-      <SchemaPanel json={parsedContent} />
+      <JsonPathPanel lang={lang} json={parsedContent} />
+      <YamlPanel lang={lang} json={parsedContent} />
+      <XmlPanel lang={lang} json={parsedContent} />
+      <SchemaPanel lang={lang} json={parsedContent} />
 
       {errMsg && (
         <Alert variant="destructive">
@@ -274,6 +336,23 @@ const styles = {
     border-bottom: 1px solid #e5e7eb;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  `,
+  modeGroup: css`
+    display: flex;
+    gap: 0.6rem;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+  `,
+  modeOption: css`
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+    user-select: none;
   `,
   editorWrap: css`
     flex: 1;

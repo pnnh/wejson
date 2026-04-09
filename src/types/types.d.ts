@@ -1,10 +1,8 @@
-import type { DetailedHTMLProps, HTMLAttributes } from 'react';
+export {};
 
-declare module 'react' {
-    namespace JSX {
-        interface IntrinsicElements {
-        }
-    }
+declare module "react" {
+  namespace JSX {
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+    interface IntrinsicElements {}
+  }
 }
-
-

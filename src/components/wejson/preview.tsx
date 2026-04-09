@@ -1,5 +1,7 @@
 "use client";
 
+import { transKey } from "@/components/common/locales/normal";
+import { transWeJsonNoContent } from "@/components/common/locales/texts";
 import { css } from "@/gen/styled/css";
 
 type TokenType =
@@ -65,9 +67,19 @@ function tokenizeJson(json: string): Array<{ type: TokenType; value: string }> {
   return tokens;
 }
 
-export function WePreview({ jsonText }: { jsonText: string }) {
+export function WePreview({
+  jsonText,
+  lang,
+}: {
+  jsonText: string;
+  lang: string;
+}) {
   if (!jsonText) {
-    return <code className={previewStyles.previewCode}>无内容</code>;
+    return (
+      <code className={previewStyles.previewCode}>
+        {transKey(lang, transWeJsonNoContent)}
+      </code>
+    );
   }
 
   const tokens = tokenizeJson(jsonText);

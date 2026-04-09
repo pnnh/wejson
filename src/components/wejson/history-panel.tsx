@@ -1,5 +1,13 @@
 "use client";
 
+import { transKey } from "@/components/common/locales/normal";
+import {
+  transWeJsonClear,
+  transWeJsonHistory,
+  transWeJsonHistoryDeleteTitle,
+  transWeJsonHistoryEmpty,
+  transWeJsonHistoryLoadTitle,
+} from "@/components/common/locales/texts";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -16,9 +24,16 @@ interface Props {
   onLoad: (content: string) => void;
   onRemove: (id: string) => void;
   onClear: () => void;
+  lang: string;
 }
 
-export function HistoryPanel({ history, onLoad, onRemove, onClear }: Props) {
+export function HistoryPanel({
+  history,
+  onLoad,
+  onRemove,
+  onClear,
+  lang,
+}: Props) {
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -28,7 +43,7 @@ export function HistoryPanel({ history, onLoad, onRemove, onClear }: Props) {
           <button className={panelStyles.trigger}>
             {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             <Clock size={14} />
-            <span>历史记录</span>
+            <span>{transKey(lang, transWeJsonHistory)}</span>
             {history.length > 0 && (
               <span className={panelStyles.badge}>{history.length}</span>
             )}
@@ -42,7 +57,7 @@ export function HistoryPanel({ history, onLoad, onRemove, onClear }: Props) {
             onClick={onClear}
           >
             <Trash2 size={13} />
-            清空
+            {transKey(lang, transWeJsonClear)}
           </Button>
         )}
       </div>
@@ -50,7 +65,7 @@ export function HistoryPanel({ history, onLoad, onRemove, onClear }: Props) {
       <CollapsibleContent className={panelStyles.content}>
         {history.length === 0 ? (
           <p className={panelStyles.empty}>
-            暂无历史记录。每次格式化后自动保存。
+            {transKey(lang, transWeJsonHistoryEmpty)}
           </p>
         ) : (
           <ul className={panelStyles.list}>
@@ -59,7 +74,7 @@ export function HistoryPanel({ history, onLoad, onRemove, onClear }: Props) {
                 <button
                   className={panelStyles.itemPreview}
                   onClick={() => onLoad(item.content)}
-                  title="点击加载到编辑器"
+                  title={transKey(lang, transWeJsonHistoryLoadTitle)}
                 >
                   <span className={panelStyles.itemText}>{item.preview}</span>
                   <span className={panelStyles.itemTime}>
@@ -69,7 +84,7 @@ export function HistoryPanel({ history, onLoad, onRemove, onClear }: Props) {
                 <button
                   className={panelStyles.removeBtn}
                   onClick={() => onRemove(item.id)}
-                  title="删除此条记录"
+                  title={transKey(lang, transWeJsonHistoryDeleteTitle)}
                 >
                   <X size={12} />
                 </button>

@@ -1,5 +1,13 @@
 "use client";
 
+import { transKey } from "@/components/common/locales/normal";
+import {
+  transWeJsonExecute,
+  transWeJsonJsonPathHint,
+  transWeJsonJsonPathPlaceholder,
+  transWeJsonJsonPathTitle,
+  transWeJsonPleaseFormat,
+} from "@/components/common/locales/texts";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -12,11 +20,11 @@ import { ChevronDown, ChevronRight, Search } from "lucide-react";
 import React from "react";
 
 interface Props {
-  /** 格式化后的 JSON 字符串（作为查询数据源） */
   json: string;
+  lang: string;
 }
 
-export function JsonPathPanel({ json }: Props) {
+export function JsonPathPanel({ json, lang }: Props) {
   const [open, setOpen] = React.useState(false);
   const [expression, setExpression] = React.useState("$");
   const [result, setResult] = React.useState("");
@@ -24,7 +32,7 @@ export function JsonPathPanel({ json }: Props) {
 
   async function evaluate() {
     if (!json) {
-      setError("请先格式化 JSON");
+      setError(transKey(lang, transWeJsonPleaseFormat));
       setResult("");
       return;
     }
@@ -52,7 +60,7 @@ export function JsonPathPanel({ json }: Props) {
           <button className={panelStyles.trigger}>
             {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             <Search size={14} />
-            <span>JSONPath 查询</span>
+            <span>{transKey(lang, transWeJsonJsonPathTitle)}</span>
           </button>
         </CollapsibleTrigger>
       </div>
@@ -63,17 +71,16 @@ export function JsonPathPanel({ json }: Props) {
             value={expression}
             onChange={(e) => setExpression(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="例：$.store.book[*].author"
+            placeholder={transKey(lang, transWeJsonJsonPathPlaceholder)}
             className={panelStyles.input}
             spellCheck={false}
           />
           <Button size="sm" onClick={evaluate} disabled={!json}>
-            执行
+            {transKey(lang, transWeJsonExecute)}
           </Button>
         </div>
         <p className={panelStyles.hint}>
-          支持 JSONPath 语法，如 <code>$.items[?(@.price &lt; 10)]</code>。按
-          Enter 或点击执行。
+          {transKey(lang, transWeJsonJsonPathHint)}
         </p>
         {error && <p className={panelStyles.error}>{error}</p>}
         {result && <pre className={panelStyles.result}>{result}</pre>}

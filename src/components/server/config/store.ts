@@ -1,13 +1,14 @@
-import {IServerConfigProvider} from "@/components/server/config";
+import { IServerConfigProvider } from "@/components/server/config";
 
 export interface IServerConfigStore {
-    GetValue(key: string): Promise<any | undefined>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  GetValue(key: string): Promise<any | undefined>;
 
-    GetString(key: string): Promise<string | undefined>;
+  GetString(key: string): Promise<string | undefined>;
 
-    GetNumber(key: string): Promise<number | undefined>;
+  GetNumber(key: string): Promise<number | undefined>;
 
-    GetBoolean(key: string): Promise<boolean | undefined>;
+  GetBoolean(key: string): Promise<boolean | undefined>;
 
-    GetProvider(): Promise<IServerConfigProvider>
+  GetProvider(): Promise<IServerConfigProvider>;
 }

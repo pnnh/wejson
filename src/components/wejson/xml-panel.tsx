@@ -1,18 +1,30 @@
 "use client";
 
-import React from "react";
-import { ChevronDown, ChevronRight, Copy, Download, Code2 } from "lucide-react";
+import { transKey } from "@/components/common/locales/normal";
+import {
+  transWeJsonConvert,
+  transWeJsonCopied,
+  transWeJsonCopy,
+  transWeJsonDownloadXml,
+  transWeJsonExportXml,
+  transWeJsonPleaseFormat,
+  transWeJsonXmlHint,
+  transWeJsonXmlRootTag,
+} from "@/components/common/locales/texts";
+import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { css } from "@/gen/styled/css";
+import { ChevronDown, ChevronRight, Code2, Copy, Download } from "lucide-react";
+import React from "react";
 
 interface Props {
   json: string;
+  lang: string;
 }
 
 // 转义 XML 特殊字符（文本节点内）
@@ -74,7 +86,7 @@ function downloadText(content: string, filename: string, mime: string) {
   URL.revokeObjectURL(url);
 }
 
-export function XmlPanel({ json }: Props) {
+export function XmlPanel({ json, lang }: Props) {
   const [open, setOpen] = React.useState(false);
   const [rootTag, setRootTag] = React.useState("root");
   const [xml, setXml] = React.useState("");
@@ -83,7 +95,7 @@ export function XmlPanel({ json }: Props) {
 
   function convert() {
     if (!json) {
-      setError("请先格式化 JSON");
+      setError(transKey(lang, transWeJsonPleaseFormat));
       setXml("");
       return;
     }
@@ -115,7 +127,7 @@ export function XmlPanel({ json }: Props) {
           <button className={s.trigger}>
             {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             <Code2 size={14} />
-            <span>导出 XML</span>
+            <span>{transKey(lang, transWeJsonExportXml)}</span>
           </button>
         </CollapsibleTrigger>
       </div>
@@ -123,7 +135,9 @@ export function XmlPanel({ json }: Props) {
       <CollapsibleContent className={s.content}>
         <div className={s.actionRow}>
           <div className={s.rootRow}>
-            <span className={s.label}>根标签名</span>
+            <span className={s.label}>
+              {transKey(lang, transWeJsonXmlRootTag)}
+            </span>
             <Input
               value={rootTag}
               onChange={(e) => setRootTag(e.target.value)}
@@ -139,7 +153,7 @@ export function XmlPanel({ json }: Props) {
             onClick={convert}
             disabled={!json}
           >
-            转换
+            {transKey(lang, transWeJsonConvert)}
           </Button>
           <Button
             size="sm"
@@ -148,7 +162,9 @@ export function XmlPanel({ json }: Props) {
             disabled={!xml}
           >
             <Copy size={13} />
-            {copied ? "已复制!" : "复制"}
+            {copied
+              ? transKey(lang, transWeJsonCopied)
+              : transKey(lang, transWeJsonCopy)}
           </Button>
           <Button
             size="sm"
@@ -157,15 +173,13 @@ export function XmlPanel({ json }: Props) {
             disabled={!xml}
           >
             <Download size={13} />
-            下载 .xml
+            {transKey(lang, transWeJsonDownloadXml)}
           </Button>
         </div>
         {error && <p className={s.error}>{error}</p>}
         {xml && <pre className={s.result}>{xml}</pre>}
         {!xml && !error && (
-          <p className={s.hint}>
-            展开后自动将格式化 JSON 转为 XML，可自定义根标签名。
-          </p>
+          <p className={s.hint}>{transKey(lang, transWeJsonXmlHint)}</p>
         )}
       </CollapsibleContent>
     </Collapsible>
