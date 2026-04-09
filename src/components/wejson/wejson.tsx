@@ -10,8 +10,28 @@ import {
   Download,
   Minimize2,
 } from "lucide-react";
-import React from "react";
-import { WePreview } from "./preview";
+import dynamic from "next/dynamic";
+import React, { useRef } from "react";
+import { useJsonHistory } from "./history";
+import { HistoryPanel } from "./history-panel";
+import { JsonPathPanel } from "./jsonpath-panel";
+import type { MonacoInputHandle } from "./monaco-input";
+
+// Monaco 组件使用 dynamic import 避免 SSR
+const MonacoInput = dynamic(
+  () => import("./monaco-input").then((m) => ({ default: m.MonacoInput })),
+  {
+    ssr: false,
+    loading: () => <div className={styles.editorLoading}>加载编辑器…</div>,
+  },
+);
+const MonacoPreview = dynamic(
+  () => import("./monaco-preview").then((m) => ({ default: m.MonacoPreview })),
+  {
+    ssr: false,
+    loading: () => <div className={styles.editorLoading}>加载预览…</div>,
+  },
+);
 
 // 递归对对象所有层级的 key 进行排序
 function sortKeys(value: unknown, direction: "asc" | "desc" = "asc"): unknown {
@@ -47,14 +67,33 @@ export function WeJsonClient() {
   const [errMsg, setErrMsg] = React.useState("");
   const [parsedContent, setParsedContent] = React.useState("");
   const [copyLabel, setCopyLabel] = React.useState("");
+  const editorHandleRef = useRef<MonacoInputHandle | null>(null);
+  const { history, addToHistory, removeFromHistory, clearHistory } =
+    useJsonHistory();
 
   function parse(raw: string): unknown | null {
     try {
       const parsed = JSON.parse(raw);
       setErrMsg("");
+      editorHandleRef.current?.clearMarkers();
       return parsed;
     } catch (error) {
-      setErrMsg("Invalid JSON: " + error);
+      const errStr = String(error);
+      setErrMsg("Invalid JSON: " + errStr);
+      // 尝试从错误信息中提取行列号，标注到 Monaco 编辑器
+      const pos = extractPosition(errStr, raw);
+      if (pos && editorHandleRef.current) {
+        editorHandleRef.current.setMarkers([
+          {
+            startLineNumber: pos.line,
+            startColumn: pos.col,
+            endLineNumber: pos.line,
+            endColumn: pos.col + 1,
+            message: errStr,
+            severity: 8, // MarkerSeverity.Error
+          },
+        ]);
+      }
       return null;
     }
   }
@@ -62,7 +101,9 @@ export function WeJsonClient() {
   function handleFormat() {
     const parsed = parse(rawContent);
     if (parsed !== null) {
-      setParsedContent(JSON.stringify(parsed, null, 2));
+      const formatted = JSON.stringify(parsed, null, 2);
+      setParsedContent(formatted);
+      addToHistory(rawContent.trim());
     }
   }
 
@@ -87,15 +128,10 @@ export function WeJsonClient() {
     setTimeout(() => setCopyLabel(""), 1500);
   }
 
-  function handleDrop(e: React.DragEvent<HTMLTextAreaElement>) {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setRawContent((ev.target?.result as string) ?? "");
-    };
-    reader.readAsText(file);
+  function handleLoadHistory(content: string) {
+    setRawContent(content);
+    setErrMsg("");
+    setParsedContent("");
   }
 
   return (
@@ -155,23 +191,32 @@ export function WeJsonClient() {
       <div className={styles.editArea}>
         <div className={styles.panel}>
           <div className={styles.panelLabel}>输入 JSON</div>
-          <textarea
-            className={styles.textarea}
-            value={rawContent}
-            placeholder="在此粘贴 JSON，或拖入 .json 文件…"
-            onChange={(e) => setRawContent(e.target.value)}
-            onDrop={handleDrop}
-            onDragOver={(e) => e.preventDefault()}
-            spellCheck={false}
-          />
+          <div className={styles.editorWrap}>
+            <MonacoInput
+              value={rawContent}
+              onChange={setRawContent}
+              onHandle={(h) => {
+                editorHandleRef.current = h;
+              }}
+            />
+          </div>
         </div>
         <div className={styles.panel}>
           <div className={styles.panelLabel}>预览</div>
-          <div className={styles.previewWrap}>
-            <WePreview jsonText={parsedContent} />
+          <div className={styles.editorWrap}>
+            <MonacoPreview value={parsedContent} />
           </div>
         </div>
       </div>
+
+      <HistoryPanel
+        history={history}
+        onLoad={handleLoadHistory}
+        onRemove={removeFromHistory}
+        onClear={clearHistory}
+      />
+
+      <JsonPathPanel json={parsedContent} />
 
       {errMsg && (
         <Alert variant="destructive">
@@ -224,23 +269,46 @@ const styles = {
     text-transform: uppercase;
     letter-spacing: 0.05em;
   `,
-  textarea: css`
+  editorWrap: css`
     flex: 1;
-    width: 100%;
-    padding: 0.75rem;
-    font-family: "Courier New", Courier, monospace;
-    font-size: 0.85rem;
-    line-height: 1.5;
-    resize: none;
-    outline: none;
+    min-height: 0;
     background: #1e1e1e;
-    color: #d4d4d4;
-    border: none;
   `,
-  previewWrap: css`
+  editorLoading: css`
     flex: 1;
-    overflow: auto;
-    scrollbar-width: thin;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: #1e1e1e;
+    color: #6b7280;
+    font-size: 0.85rem;
+    height: 100%;
   `,
 };
+
+// 尝试从 JSON.parse 抛出的错误消息中提取行列号
+// 不同运行时格式不同，做尽力解析
+function extractPosition(
+  errMsg: string,
+  source: string,
+): { line: number; col: number } | null {
+  // V8: "Unexpected token x in JSON at position N"
+  const posMatch = /at position (\d+)/.exec(errMsg);
+  if (posMatch) {
+    const offset = parseInt(posMatch[1], 10);
+    return offsetToLineCol(source, offset);
+  }
+  // Firefox / Safari: "JSON Parse error: Unexpected token" without position
+  return null;
+}
+
+function offsetToLineCol(
+  source: string,
+  offset: number,
+): { line: number; col: number } {
+  const lines = source.slice(0, offset).split("\n");
+  return {
+    line: lines.length,
+    col: (lines[lines.length - 1]?.length ?? 0) + 1,
+  };
+}
