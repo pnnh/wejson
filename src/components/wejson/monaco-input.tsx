@@ -69,7 +69,7 @@ export function MonacoInput({ value, onChange, onDrop, onHandle }: Props) {
         height="100%"
         language="json"
         value={value}
-        theme="vs-dark"
+        theme="vs"
         onChange={(val) => onChange(val ?? "")}
         onMount={handleMount}
         options={{
@@ -94,7 +94,7 @@ const inputStyles = {
     height: 100%;
     /* 拖入文件时显示高亮边框 */
     &[data-dragging] {
-      outline: 2px dashed #569cd6;
+      outline: 2px dashed #0070f3;
       outline-offset: -2px;
     }
   `,

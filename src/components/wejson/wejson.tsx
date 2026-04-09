@@ -15,6 +15,9 @@ import React, { useRef } from "react";
 import { useJsonHistory } from "./history";
 import { HistoryPanel } from "./history-panel";
 import { JsonPathPanel } from "./jsonpath-panel";
+import { YamlPanel } from "./yaml-panel";
+import { XmlPanel } from "./xml-panel";
+import { SchemaPanel } from "./schema-panel";
 import type { MonacoInputHandle } from "./monaco-input";
 
 // Monaco 组件使用 dynamic import 避免 SSR
@@ -217,6 +220,9 @@ export function WeJsonClient() {
       />
 
       <JsonPathPanel json={parsedContent} />
+      <YamlPanel json={parsedContent} />
+      <XmlPanel json={parsedContent} />
+      <SchemaPanel json={parsedContent} />
 
       {errMsg && (
         <Alert variant="destructive">
@@ -272,14 +278,14 @@ const styles = {
   editorWrap: css`
     flex: 1;
     min-height: 0;
-    background: #1e1e1e;
+    background: #fff;
   `,
   editorLoading: css`
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #1e1e1e;
+    background: #fff;
     color: #6b7280;
     font-size: 0.85rem;
     height: 100%;

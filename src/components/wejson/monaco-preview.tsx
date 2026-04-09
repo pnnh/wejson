@@ -12,7 +12,7 @@ export function MonacoPreview({ value }: Props) {
       height="100%"
       language="json"
       value={value || "// 无内容"}
-      theme="vs-dark"
+      theme="vs"
       options={{
         readOnly: true,
         minimap: { enabled: false },
