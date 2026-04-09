@@ -15,17 +15,16 @@
         "ms-vscode.vscode-typescript-next",
         "GitHub.copilot"
       ],
-      "settings": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "settings": { 
         "editor.formatOnSave": true
       }
     }
   },
   "postCreateCommand": "pnpm install",
-  "forwardPorts": [3000],
+  "forwardPorts": [7112],
   "portsAttributes": {
-    "3000": {
-      "label": "Next.js Dev Server",
+    "7112": {
+      "label": "WeJSON Dev Server",
       "onAutoForward": "notify"
     }
   }

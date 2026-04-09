@@ -1,15 +1,32 @@
-export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
-        <h1 className="mb-4 text-3xl font-bold text-gray-900">Welcome to WeJSON</h1>
-        <p className="mb-4 text-gray-600">
-          This is a Next.js starter template configured with TypeScript, Tailwind CSS, and ESLint.
-        </p>
-        <p className="text-sm text-gray-500">
-          Start editing <code className="font-mono">src/app/page.tsx</code> to see changes.
-        </p>
-      </div>
-    </main>
-  );
+import React from 'react'
+import ContentLayout from '@/components/server/content/layout'
+import {getPathname} from "@/components/server/pathname";
+import {headers} from "next/headers";
+import {getTargetLang, langEnUS} from "@/components/common/language";
+import {css} from "@/gen/styled/css"; 
+import { WeJsonClient } from '@/components/wejson/wejson';
+
+export default async function Page({searchParams}: {
+    searchParams: Promise<Record<string, string>>
+}) {
+    const pathname = await getPathname()
+    const searchParamsValue = await searchParams
+
+    const headersList = await headers()
+    const acceptLang = headersList.get('Accept-Language') || langEnUS
+    const lang = getTargetLang(acceptLang, langEnUS)
+
+    return <ContentLayout lang={lang} searchParams={searchParamsValue} pathname={pathname}>
+
+        <div className={pageStyles.pageContainer}>
+            <WeJsonClient/>
+        </div>
+    </ContentLayout>
+}
+
+const pageStyles = {
+    pageContainer: css`
+        width: 960px;
+        margin: 0 auto !important;
+    `
 }

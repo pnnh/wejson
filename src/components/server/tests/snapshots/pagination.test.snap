@@ -1,0 +1,74 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PaginationServer renders correctly 1`] = `
+<div>
+  <div
+    class="width_100% display_flex justify-content_center margin_0_auto list-style_none padding_0_16px_0_16px"
+  >
+    <div
+      class="margin_0.5rem"
+    >
+      <a
+        class="padding_8px margin-right_4px min-width_16px text-decoration_none text-align_center color_#000000 width_32px height_32px"
+        href="/articles?page=2"
+      >
+        Previous Page
+      </a>
+      <a
+        class="padding_8px margin-right_4px min-width_16px text-decoration_none text-align_center color_#000000 width_32px height_32px"
+        href="/articles?page=1"
+      >
+        1
+      </a>
+      <a
+        class="padding_8px margin-right_4px min-width_16px text-decoration_none text-align_center color_#000000 width_32px height_32px"
+        href="/articles?page=2"
+      >
+        2
+      </a>
+      <a
+        class="background-color_rgba(42,_142,_224,_0.84) display_inline-block min-width_16px text-decoration_none width_32px text-align_center color_#FFFFFF"
+        href="/articles?page=3"
+      >
+        3
+      </a>
+      <a
+        class="padding_8px margin-right_4px min-width_16px text-decoration_none text-align_center color_#000000 width_32px height_32px"
+        href="/articles?page=4"
+      >
+        4
+      </a>
+      <a
+        class="padding_8px margin-right_4px min-width_16px text-decoration_none text-align_center color_#000000 width_32px height_32px"
+        href="/articles?page=5"
+      >
+        5
+      </a>
+      <a
+        class="padding_8px margin-right_4px min-width_16px text-decoration_none text-align_center color_#000000 width_32px height_32px"
+        href="/articles?page=6"
+      >
+        6
+      </a>
+      <a
+        class="padding_8px margin-right_4px min-width_16px text-decoration_none text-align_center color_#000000 width_32px height_32px"
+        href="/articles?page=7"
+      >
+        7
+      </a>
+      <a
+        class="padding_8px margin-right_4px min-width_16px text-decoration_none text-align_center color_#000000 width_32px height_32px"
+        href="/articles?page=8"
+      >
+        8
+      </a>
+      <a
+        class="padding_8px margin-right_4px min-width_16px text-decoration_none text-align_center color_#000000 width_32px height_32px"
+        href="/articles?page=4"
+      >
+        Next Page
+      </a>
+    </div>
+  </div>
+</div>
+`;

@@ -1,0 +1,17 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`GoTop renders correctly 1`] = `
+<div>
+  <div
+    class="position_fixed bottom_4rem right_4rem z-index_1000 cursor_pointer"
+    style="display: none;"
+  >
+    <img
+      alt="go-top"
+      height="48"
+      src="/icons/gotop.svg"
+      width="48"
+    />
+  </div>
+</div>
+`;
