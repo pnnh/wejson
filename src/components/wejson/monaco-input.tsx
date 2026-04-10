@@ -15,9 +15,10 @@ interface Props {
   onChange: (val: string) => void;
   onDrop?: (content: string) => void;
   onHandle?: (handle: MonacoInputHandle) => void;
+  inputMode?: "json" | "json5";
 }
 
-export function MonacoInput({ value, onChange, onDrop, onHandle }: Props) {
+export function MonacoInput({ value, onChange, onDrop, onHandle, inputMode = "json" }: Props) {
   const editorRef = useRef<MonacoEditorNS.IStandaloneCodeEditor | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const monacoRef = useRef<any>(null);
@@ -67,7 +68,7 @@ export function MonacoInput({ value, onChange, onDrop, onHandle }: Props) {
     >
       <Editor
         height="100%"
-        language="json"
+        language={inputMode === "json5" ? "javascript" : "json"}
         value={value}
         theme="vs"
         onChange={(val) => onChange(val ?? "")}

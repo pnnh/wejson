@@ -82,6 +82,7 @@ export function WeJsonClient({ lang }: { lang: string }) {
   const [parsedContent, setParsedContent] = React.useState("");
   const [inputMode, setInputMode] = React.useState<"json" | "json5">("json");
   const [copyLabel, setCopyLabel] = React.useState("");
+  const [editorMounted, setEditorMounted] = React.useState(false);
   const editorHandleRef = useRef<MonacoInputHandle | null>(null);
   const { history, addToHistory, removeFromHistory, clearHistory } =
     useJsonHistory();
@@ -248,14 +249,18 @@ export function WeJsonClient({ lang }: { lang: string }) {
             </div>
           </div>
           <div className={styles.editorWrap}>
-            <div className={styles.editorLoading} id="editor-loading-input">
-              {transKey(lang, transWeJsonLoadingEditor)}
-            </div>
+            {!editorMounted && (
+              <div className={styles.editorLoading} id="editor-loading-input">
+                {transKey(lang, transWeJsonLoadingEditor)}
+              </div>
+            )}
             <MonacoInput
               value={rawContent}
               onChange={setRawContent}
+              inputMode={inputMode}
               onHandle={(h) => {
                 editorHandleRef.current = h;
+                setEditorMounted(true);
               }}
             />
           </div>
@@ -265,9 +270,11 @@ export function WeJsonClient({ lang }: { lang: string }) {
             {transKey(lang, transWeJsonPreviewLabel)}
           </div>
           <div className={styles.editorWrap}>
-            <div className={styles.editorLoading} id="editor-loading-preview">
-              {transKey(lang, transWeJsonLoadingPreview)}
-            </div>
+            {!editorMounted && (
+              <div className={styles.editorLoading} id="editor-loading-preview">
+                {transKey(lang, transWeJsonLoadingPreview)}
+              </div>
+            )}
             <MonacoPreview value={parsedContent} lang={lang} />
           </div>
         </div>

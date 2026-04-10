@@ -1,8 +1,9 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
+import tsconfigPaths from 'vite-tsconfig-paths'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tsconfigPaths()],
   test: {
     // 使用 jsdom 模拟浏览器环境，用于组件测试
     environment: "jsdom",
@@ -15,10 +16,7 @@ export default defineConfig({
     // 指向 test 专用 tsconfig
     typecheck: {
       tsconfig: "./tsconfig.test.json",
-    },
-    resolve: {
-        tsconfigPaths: true
-    }
+    }, 
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
