@@ -3,7 +3,7 @@
 import { css } from "@/gen/styled/css";
 import Editor, { type OnMount } from "@monaco-editor/react";
 import type { editor as MonacoEditorNS } from "monaco-editor";
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 
 export interface MonacoInputHandle {
   setMarkers: (markers: MonacoEditorNS.IMarkerData[]) => void;
@@ -18,14 +18,33 @@ interface Props {
   inputMode?: "json" | "json5";
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function setJsDiagnostics(monaco: any, disabled: boolean) {
+  monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+    noSyntaxValidation: disabled,
+    noSemanticValidation: disabled,
+  });
+}
+
 export function MonacoInput({ value, onChange, onDrop, onHandle, inputMode = "json" }: Props) {
   const editorRef = useRef<MonacoEditorNS.IStandaloneCodeEditor | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const monacoRef = useRef<any>(null);
 
+  // When switching to JSON5 mode the editor uses "javascript" language for comment
+  // highlighting. Disable JS syntax/semantic validation so JSON5 content (top-level
+  // object literals, no semicolons, etc.) isn't incorrectly flagged as JS errors.
+  useEffect(() => {
+    if (monacoRef.current) {
+      setJsDiagnostics(monacoRef.current, inputMode === "json5");
+    }
+  }, [inputMode]);
+
   const handleMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
+    // Apply on mount in case the initial mode is json5
+    setJsDiagnostics(monaco, inputMode === "json5");
     if (onHandle) {
       onHandle({
         setMarkers(markers) {
