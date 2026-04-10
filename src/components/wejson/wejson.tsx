@@ -33,6 +33,13 @@ import { useJsonHistory } from "./history";
 import { HistoryPanel } from "./history-panel";
 import { JsonPathPanel } from "./jsonpath-panel";
 import type { MonacoInputHandle } from "./monaco-input";
+import {
+  buildJpg,
+  buildPng,
+  buildSvg,
+  EXPORT_THEMES,
+  type ExportTheme,
+} from "./export-json";
 import { SchemaPanel } from "./schema-panel";
 import { XmlPanel } from "./xml-panel";
 import { YamlPanel } from "./yaml-panel";
@@ -76,6 +83,8 @@ function downloadJson(content: string, filename = "data.json") {
   URL.revokeObjectURL(url);
 }
 
+const MAX_INPUT_SIZE = 50_000; // 50 KB — prevents runaway large pastes
+
 export function WeJsonClient({ lang }: { lang: string }) {
   const [rawContent, setRawContent] = React.useState("");
   const [errMsg, setErrMsg] = React.useState("");
@@ -83,6 +92,8 @@ export function WeJsonClient({ lang }: { lang: string }) {
   const [inputMode, setInputMode] = React.useState<"json" | "json5">("json");
   const [copyLabel, setCopyLabel] = React.useState("");
   const [editorMounted, setEditorMounted] = React.useState(false);
+  const [theme, setTheme] = React.useState<ExportTheme>("github-light");
+  const [exporting, setExporting] = React.useState<"svg" | "png" | "jpg" | null>(null);
   const editorHandleRef = useRef<MonacoInputHandle | null>(null);
   const { history, addToHistory, removeFromHistory, clearHistory } =
     useJsonHistory();
@@ -161,6 +172,40 @@ export function WeJsonClient({ lang }: { lang: string }) {
     setRawContent(content);
     setErrMsg("");
     setParsedContent("");
+  }
+
+  async function handleExport(format: "svg" | "png" | "jpg") {
+    if (!parsedContent || exporting) return;
+    setExporting(format);
+    try {
+      if (format === "svg") {
+        const svg = await buildSvg(parsedContent, theme);
+        const a = document.createElement("a");
+        a.href = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+        a.download = "preview.svg";
+        a.click();
+      } else if (format === "png") {
+        const blob = await buildPng(parsedContent, theme);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "preview.png";
+        a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        const blob = await buildJpg(parsedContent, theme);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "preview.jpg";
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch {
+      setErrMsg("Export failed");
+    } finally {
+      setExporting(null);
+    }
   }
 
   return (
@@ -258,6 +303,7 @@ export function WeJsonClient({ lang }: { lang: string }) {
               value={rawContent}
               onChange={setRawContent}
               inputMode={inputMode}
+              maxLength={MAX_INPUT_SIZE}
               onHandle={(h) => {
                 editorHandleRef.current = h;
                 setEditorMounted(true);
@@ -267,7 +313,47 @@ export function WeJsonClient({ lang }: { lang: string }) {
         </div>
         <div className={styles.panel}>
           <div className={styles.panelLabel}>
-            {transKey(lang, transWeJsonPreviewLabel)}
+            <span>{transKey(lang, transWeJsonPreviewLabel)}</span>
+            <div className={styles.previewActions}>
+              <select
+                className={styles.themeSelect}
+                value={theme}
+                onChange={(e) => setTheme(e.target.value as ExportTheme)}
+              >
+                {EXPORT_THEMES.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={!parsedContent || exporting !== null}
+                onClick={() => handleExport("svg")}
+              >
+                <Download size={12} />
+                {exporting === "svg" ? "…" : "SVG"}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={!parsedContent || exporting !== null}
+                onClick={() => handleExport("png")}
+              >
+                <Download size={12} />
+                {exporting === "png" ? "…" : "PNG"}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={!parsedContent || exporting !== null}
+                onClick={() => handleExport("jpg")}
+              >
+                <Download size={12} />
+                {exporting === "jpg" ? "…" : "JPG"}
+              </Button>
+            </div>
           </div>
           <div className={styles.editorWrap}>
             {!editorMounted && (
@@ -275,7 +361,7 @@ export function WeJsonClient({ lang }: { lang: string }) {
                 {transKey(lang, transWeJsonLoadingPreview)}
               </div>
             )}
-            <MonacoPreview value={parsedContent} lang={lang} />
+            <MonacoPreview value={parsedContent} lang={lang} theme={theme} />
           </div>
         </div>
       </div>
@@ -360,6 +446,25 @@ const styles = {
     gap: 0.25rem;
     cursor: pointer;
     user-select: none;
+  `,
+  previewActions: css`
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-left: auto;
+  `,
+  themeSelect: css`
+    font-size: 0.72rem;
+    padding: 0.15rem 0.3rem;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background: #fff;
+    color: #374151;
+    cursor: pointer;
+    outline: none;
+    &:focus {
+      border-color: #6b7280;
+    }
   `,
   editorWrap: css`
     flex: 1;

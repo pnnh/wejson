@@ -16,6 +16,7 @@ interface Props {
   onDrop?: (content: string) => void;
   onHandle?: (handle: MonacoInputHandle) => void;
   inputMode?: "json" | "json5";
+  maxLength?: number;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -26,7 +27,7 @@ function setJsDiagnostics(monaco: any, disabled: boolean) {
   });
 }
 
-export function MonacoInput({ value, onChange, onDrop, onHandle, inputMode = "json" }: Props) {
+export function MonacoInput({ value, onChange, onDrop, onHandle, inputMode = "json", maxLength }: Props) {
   const editorRef = useRef<MonacoEditorNS.IStandaloneCodeEditor | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const monacoRef = useRef<any>(null);
@@ -45,6 +46,21 @@ export function MonacoInput({ value, onChange, onDrop, onHandle, inputMode = "js
     monacoRef.current = monaco;
     // Apply on mount in case the initial mode is json5
     setJsDiagnostics(monaco, inputMode === "json5");
+
+    // Enforce character limit: truncate on content change if exceeded
+    if (maxLength) {
+      editor.getModel()?.onDidChangeContent(() => {
+        const model = editor.getModel();
+        if (!model) return;
+        const content = model.getValue();
+        if (content.length > maxLength) {
+          editor.executeEdits("cap-length", [
+            { range: model.getFullModelRange(), text: content.slice(0, maxLength) },
+          ]);
+        }
+      });
+    }
+
     if (onHandle) {
       onHandle({
         setMarkers(markers) {
@@ -89,7 +105,6 @@ export function MonacoInput({ value, onChange, onDrop, onHandle, inputMode = "js
         height="100%"
         language={inputMode === "json5" ? "javascript" : "json"}
         value={value}
-        theme="vs"
         onChange={(val) => onChange(val ?? "")}
         onMount={handleMount}
         options={{

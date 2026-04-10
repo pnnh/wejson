@@ -176,3 +176,80 @@ test.describe("JSON5 input", () => {
     await expect(page.locator(ERROR_ALERT)).not.toBeVisible();
   });
 });
+
+test.describe("preview export", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto(BASE);
+    await page.waitForSelector(".monaco-editor", { state: "visible", timeout: 30_000 });
+    // Format some content so the export buttons become enabled
+    await setEditorContent(page, '{"hello":"world"}');
+    await page.getByRole("button", { name: "Format", exact: true }).click();
+  });
+
+  test("theme selector is visible with default GitHub Light", async ({ page }) => {
+    const select = page.locator("select");
+    await expect(select).toBeVisible();
+    await expect(select).toHaveValue("github-light");
+  });
+
+  test("export buttons SVG PNG JPG are visible and enabled after format", async ({ page }) => {
+    await expect(page.getByRole("button", { name: /SVG/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /PNG/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /JPG/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /SVG/ })).toBeEnabled();
+    await expect(page.getByRole("button", { name: /PNG/ })).toBeEnabled();
+    await expect(page.getByRole("button", { name: /JPG/ })).toBeEnabled();
+  });
+
+  test("export buttons are disabled before format", async ({ page }) => {
+    // Fresh page — no formatted content yet
+    await page.goto(BASE);
+    await page.waitForSelector(".monaco-editor", { state: "visible", timeout: 30_000 });
+    await expect(page.getByRole("button", { name: /SVG/ })).toBeDisabled();
+    await expect(page.getByRole("button", { name: /PNG/ })).toBeDisabled();
+    await expect(page.getByRole("button", { name: /JPG/ })).toBeDisabled();
+  });
+
+  test("switching theme produces no console errors", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("console", (msg) => {
+      if (msg.type() === "error") errors.push(msg.text());
+    });
+
+    const select = page.locator("select");
+    // Cycle through all themes
+    for (const value of ["github-dark", "dracula", "nord", "one-dark-pro", "github-light"]) {
+      await select.selectOption(value);
+      // Brief pause for async theme application
+      await page.waitForTimeout(600);
+    }
+
+    // Filter out unrelated errors (e.g. HMR / network)
+    const shikiErrors = errors.filter((e) => e.includes("ShikiError") || e.includes("Theme"));
+    expect(shikiErrors).toHaveLength(0);
+  });
+
+  test("SVG export triggers download without error", async ({ page }) => {
+    const downloadPromise = page.waitForEvent("download", { timeout: 15_000 });
+    await page.getByRole("button", { name: /SVG/ }).click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toBe("preview.svg");
+    await expect(page.locator(ERROR_ALERT)).not.toBeVisible();
+  });
+
+  test("PNG export triggers download without error", async ({ page }) => {
+    const downloadPromise = page.waitForEvent("download", { timeout: 15_000 });
+    await page.getByRole("button", { name: /PNG/ }).click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toBe("preview.png");
+    await expect(page.locator(ERROR_ALERT)).not.toBeVisible();
+  });
+
+  test("JPG export triggers download without error", async ({ page }) => {
+    const downloadPromise = page.waitForEvent("download", { timeout: 15_000 });
+    await page.getByRole("button", { name: /JPG/ }).click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toBe("preview.jpg");
+    await expect(page.locator(ERROR_ALERT)).not.toBeVisible();
+  });
+});
