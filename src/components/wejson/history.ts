@@ -5,6 +5,16 @@ import { useCallback, useEffect, useState } from "react";
 const HISTORY_KEY = "wejson_history";
 const MAX_HISTORY = 10;
 
+function hasConsent(): boolean {
+    try {
+        return document.cookie
+            .split("; ")
+            .some((row) => row === "cookie-consent=accepted");
+    } catch {
+        return false;
+    }
+}
+
 export interface HistoryItem {
   id: string;
   content: string;
@@ -26,6 +36,7 @@ function loadHistory(): HistoryItem[] {
 }
 
 function saveHistory(items: HistoryItem[]) {
+  if (!hasConsent()) return;
   try {
     localStorage.setItem(HISTORY_KEY, JSON.stringify(items));
   } catch {
